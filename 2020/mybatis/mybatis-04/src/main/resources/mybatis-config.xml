@@ -5,9 +5,13 @@
 <configuration>
 
     <!--引入外部配置文件-->
-    <properties resource="db.properties">
-
-    </properties>
+    <properties resource="db.properties"/>
+    
+    <settings>
+        <!--标准的日志工厂实现-->
+        <!--<setting name="logImpl" value="STDOUT_LOGGING"/>-->
+        <setting name="logImpl" value="LOG4J"/>
+    </settings>
     <!--环境，默认是default="development"-->
     <environments default="development">
         <environment id="development">
