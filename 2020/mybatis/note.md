@@ -316,3 +316,63 @@ logger.warn("这是logger warn");
 上面三个分别对应日志的三个级别：信息，错误，警告
 
 在IDEA安装.log插件可以将log文件高亮，更易找出错误和警告
+
+分页：
+
+```sql
+select * from table limit start,pages
+```
+
+
+
+----
+
+## mybatis-05
+
+**注解执行sql的原理：**
+
+注解开发的**核心（本质）**是使用反射技术，反射可以在程序运行的时候得到某个类的所有方法，然后执行想要执行的方法。
+
+底层使用的是**动态代理**。
+
+使用注解开发：
+
+第一步：注解在接口上实现
+
+```java
+@Select("select * from user")
+List<User> getUsers();
+```
+
+第二步：在配置文件上绑定接口
+
+```xml
+<!--绑定接口-->
+<mappers>
+    <mapper class="com.chen.dao.UserMapper"/>
+</mappers>
+```
+
+第三步：正常从sqlsession获取mapper.class，然后执行接口的方法
+
+```java
+@Test
+public void getUserTest(){
+    SqlSession sqlSession = MybatisUtils.getSqlSession();
+    UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+    List<User> users = mapper.getUsers();
+    for (User user : users){
+        System.out.println(user);
+    }
+    sqlSession.close();
+}
+```
+
+mybatis注解开发自动提交事务：
+
+```java
+public static SqlSession getSqlSession(){
+    return sqlSessionFactory.openSession(true);
+}
+```
+

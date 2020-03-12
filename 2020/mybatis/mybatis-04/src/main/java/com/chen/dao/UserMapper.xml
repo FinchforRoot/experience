@@ -22,4 +22,8 @@
         select * from user where id = #{id}
     </select>
 
+    <select id="getUserByLimit" parameterType="map" resultType="com.chen.pojo.User">
+        select * from user limit #{startIndex},#{pageSize}
+    </select>
+
 </mapper>

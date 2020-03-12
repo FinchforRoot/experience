@@ -1,9 +1,9 @@
 package com.chen.dao;
 
 import com.chen.pojo.User;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @Description
@@ -11,6 +11,7 @@ import java.util.Map;
  * @create 2020-02-22 15:42
  */
 public interface UserMapper {
-    User getUserById(int id);
-    List<User> getUserByLimit(Map<String,Integer> map);
+
+    @Select("select * from user")
+    List<User> getUsers();
 }
