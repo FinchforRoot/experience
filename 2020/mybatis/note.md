@@ -376,3 +376,16 @@ public static SqlSession getSqlSession(){
 }
 ```
 
+## mybatis-06
+
+**测试环境搭建：**
+
+1.导入lombok
+
+2.建立实体类Teacher,Student
+
+3.建立Mapper接口建立Mapper.xml文件
+
+4.在核心配置文件中绑定注册我们的Mapper接口或者文件
+
+5.测试查询能否成功
