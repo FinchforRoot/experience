@@ -1,6 +1,6 @@
 笔记：
 -------
-mybatis-started
+mybatis-01
 -------
 1. 使用IDEA创建maven项目，删除自带的src目录
 
@@ -63,7 +63,7 @@ mybatis-started
 
 -----
 
-## mybatis-conf
+## mybatis-02
 
 mybatis配置中需要记住的有：
 
@@ -389,3 +389,216 @@ public static SqlSession getSqlSession(){
 4.在核心配置文件中绑定注册我们的Mapper接口或者文件
 
 5.测试查询能否成功
+
+
+
+**多对一处理：**
+
+**按照查询嵌套处理**
+
+```xml
+<!--思路:1、查询所有的学生信息 2、根据查询出来的学生的tid来寻找对应的老师-->
+<select id="getStudent" resultMap="StudentTeacher">
+    select * from student
+</select>
+
+<resultMap id="StudentTeacher" type="com.chen.pojo.Student">
+    <result property="id" column="id"/>
+    <result property="name" column="name"/>
+    <!--复杂查询我们需要单独处理 对象：association 集合：collection-->
+    <association property="teacher" column="tid" javaType="com.chen.pojo.Teacher" select="getTeacher"/>
+</resultMap>
+
+<select id="getTeacher" resultType="com.chen.pojo.Teacher">
+    select * from teacher where id=#{id};
+</select>
+```
+
+**按照结果嵌套处理**
+
+```xml
+<!--按照结果嵌套处理-->
+<select id="getStudent2" resultMap="StudentTeacher2">
+    select s.id sid,s.name sname,t.name tname from student s,teacher t where s.tid = t.id
+</select>
+<resultMap id="StudentTeacher2" type="com.chen.pojo.Student">
+    <result property="id" column="sid"/>
+    <result property="name" column="sname"/>
+    <association property="teacher" javaType="com.chen.pojo.Teacher">
+        <result property="name" column="tname"/>
+    </association>
+</resultMap>
+```
+
+回顾mysql多对一查询方式：
+
+子查询
+
+联表查询
+
+
+
+
+
+**一对多处理：**
+
+比如一个老师拥有多个学生，对于老师而言就是一对多
+
+首先是实体类
+
+```java
+@Data
+@ToString
+public class Teacher {
+    private int id;
+    private String name;
+    //一个老师拥有多个学生
+    private List<Student> students;
+}
+```
+
+```java
+@Data
+public class Student {
+    private int id;
+    private String name;
+    private int tid;
+}
+```
+
+**根据结果嵌套处理（个人推荐）**
+
+```xml
+<!--按照结果嵌套查询-->
+<select id="getTeachers" resultMap="TeacherStudent">
+    select s.id sid,s.name sname,t.name tname,t.id tid from student s,teacher t where s.tid = t.id and t.id = #{tid};
+</select>
+<!--复杂查询我们需要单独处理 对象：association 集合：collection
+        对于集合中的泛型  我们使用ofType来指定-->
+<resultMap id="TeacherStudent" type="com.chen.pojo.Teacher">
+    <result property="id" column="tid"/>
+    <result property="name" column="tname"/>
+    <collection property="students" ofType="com.chen.pojo.Student">
+        <result property="id" column="sid"/>
+        <result property="name" column="sname"/>
+        <result property="tid" column="tid"/>
+    </collection>
+</resultMap>
+```
+
+**根据查询嵌套处理**
+
+```xml
+<!--按照查询嵌套处理
+        思路：1、先查老师，然后查学生的tid为老师的id的学生的结果
+    -->
+<select id="getTeachers2" resultMap="TeacherStudent2">
+    select * from teacher where id=#{tid}
+</select>
+<resultMap id="TeacherStudent2" type="com.chen.pojo.Teacher">
+    <collection property="students" javaType="ArrayList" ofType="com.chen.pojo.Student" select="getStudentByTeacherId" column="id"/>
+</resultMap>
+
+<select id="getStudentByTeacherId" resultType="com.chen.pojo.Student">
+    select * from student where tid=#{tid};
+</select>
+```
+
+**总结：**
+
+1、保证sql的可读性
+
+一对多和多对一需要注意：
+
+3、JavaType【用来指定实体类中属性的类型】、ofType【用来映射到List或者集合中的pojo类型，泛型中的约束类型】以及collection集合【一对多】、association关联对象【多对一】
+
+
+
+面试高频：
+
+mysql引擎
+
+索引
+
+索引优化
+
+InnoDB底层原理
+
+
+
+**动态sql环境搭建：**
+
+```sql
+CREATE TABLE `blog`(
+`id` VARCHAR(50) NOT NULL COMMENT '博客id',
+`title` VARCHAR(100) NOT NULL COMMENT '博客标题',
+`author` VARCHAR(30) NOT NULL COMMENT '博客作者',
+`create_time` datetime NOT NULL COMMENT '创建时间',
+`views` int(30) NOT NULL COMMENT '浏览量'
+)ENGINE=INNODB DEFAULT CHARSET=utf8
+```
+
+创建一个基础工程
+
+1、导包
+
+2、编写配置文件
+
+3、编写实体类
+
+```java
+@Data
+@ToString
+public class Blog {
+    private String id;
+    private String title;
+    private String author;
+    private Date createTime;    //属性名和字段名不一致
+    private int views;
+}
+```
+
+
+
+4、编写实体类对应Mapper接口和Mapper.xml文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--核心配置文件-->
+<mapper namespace="com.chen.dao.BlogMapper">
+    <insert id="addBlog">
+        insert into blog (id, title, author, create_time, views) values (#{id},#{title},#{author},#{createTime},#{views});
+    </insert>
+
+    <select id="queryBlogIF" parameterType="map" resultType="Blog">
+        select * from blog where 1=1
+        <if test="title != null">
+            and title = #{title}
+        </if>
+        <if test="author != null">
+            and author = #{author}
+        </if>
+    </select>
+</mapper>
+```
+
+```java
+package com.chen.dao;
+
+import com.chen.pojo.Blog;
+
+import java.util.List;
+import java.util.Map;
+
+public interface BlogMapper {
+
+    //插入数据
+    int addBlog(Blog blog);
+
+    //根据if条件判断查询数据
+    List<Blog> queryBlogIF(Map map);
+}
+```
+
