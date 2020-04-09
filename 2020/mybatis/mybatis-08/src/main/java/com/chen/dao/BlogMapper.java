@@ -17,4 +17,10 @@ public interface BlogMapper {
 
     //根据if条件判断查询数据
     List<Blog> queryBlogIF(Map map);
+
+    //更新博客
+    int updateBlog(Map map);
+
+    //根据choose条件查询数据
+    List<Blog> queryBlogChoose(Map map);
 }

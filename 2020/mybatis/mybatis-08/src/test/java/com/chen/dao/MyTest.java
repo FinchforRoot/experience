@@ -6,10 +6,7 @@ import com.chen.utils.MybatisUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.junit.Test;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author czb
@@ -50,10 +47,38 @@ public class MyTest {
         BlogMapper mapper = sqlSession.getMapper(BlogMapper.class);
         Map map = new HashMap();
         map.put("title","标题1");
+        map.put("author","王五");
         List<Blog> blogs = mapper.queryBlogIF(map);
         for (Blog blog : blogs) {
             System.out.println(blog);
         }
+        sqlSession.close();
+    }
+
+    @Test
+    public void test3(){
+        SqlSession sqlSession = MybatisUtils.getSqlSession();
+        BlogMapper mapper = sqlSession.getMapper(BlogMapper.class);
+        Map map = new HashMap();
+//        map.put("title","标题1");
+        map.put("author","王五");
+        map.put("views",9999);
+        List<Blog> blogs = mapper.queryBlogChoose(map);
+        for (Blog blog : blogs) {
+            System.out.println(blog);
+        }
+        sqlSession.close();
+    }
+
+    @Test
+    public void test4(){
+        SqlSession sqlSession = MybatisUtils.getSqlSession();
+        BlogMapper mapper = sqlSession.getMapper(BlogMapper.class);
+        Map map = new HashMap();
+        map.put("title","标题1");
+        map.put("author","王五");
+        map.put("id","2265ae05881c43688b724d635e100917");
+        mapper.updateBlog(map);
         sqlSession.close();
     }
 }
